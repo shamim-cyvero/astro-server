@@ -33,6 +33,8 @@ export const UserSignup = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -74,6 +76,8 @@ export const UserLogin = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -94,8 +98,9 @@ export const UserLogout = async (req, res) => {
       .status(200)
       .cookie("token", null, {
         expires: new Date(Date.now()),
-        sameSite: "none",
-        secure: true,
+        httpOnly: true,
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -134,7 +139,7 @@ export const UserProfile = async (req, res) => {
 
 export const UserUpdateProfile = async (req, res) => {
   try {
-    const { name, email, phone, avatar } = req.body;
+    const { name, email, phone, address } = req.body;
     let user = await User.findById(req.user._id);
     if (!user) {
       return res.status(400).json({
@@ -151,10 +156,42 @@ export const UserUpdateProfile = async (req, res) => {
     if (phone) {
       user.phone = phone;
     }
-    if (avatar) {
-      await cloudinary.v2.uploader.destroy(user.avatar.public_id, {
-        folder: "astro",
+    if (address) {
+      user.address = address;
+    }
+
+    await user.save({ validateBeforeSave: false });
+
+    res.status(201).json({
+      success: true,
+      message: "user updated Success",
+      user,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const UserUpdateAvatar = async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
       });
+    }
+
+    if (avatar) {
+      if (user.avatar.public_id) {
+        await cloudinary.v2.uploader.destroy(user.avatar.public_id, {
+          folder: "astro",
+        });
+      }
       const Myuploader = await cloudinary.v2.uploader.upload(avatar, {
         folder: "astro",
       });
@@ -166,7 +203,7 @@ export const UserUpdateProfile = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "user load Success",
+      message: "user avatar change Success",
       user,
     });
   } catch (error) {
@@ -259,10 +296,113 @@ export const EmailContact = async (req, res) => {
         message: "Email required",
       });
     }
-    const subject = "Contact from smart property hub";
+    const subject = "Contact from  astrosoull";
     const UserEmail = process.env.SMTP_SENDER_EMAIL;
     const message = `Hi, My Email is ${email}`;
-    sendEmail(subject, UserEmail, message);
+    sendEmail(subject, UserEmail, message); 
+
+    res.status(200).json({
+      success: true,
+      message: "Message has been send",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ----------------admin controllers -----------------------
+
+export const AdminGetAllUser = async (req, res) => {
+  try {
+    let user = await User.find();
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry Admin - user not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AdminGetSingleUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry Admin - user not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AdminDeleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry Admin - user is not in our DataBase",
+      });
+    }
+    if (user.avatar?.public_id) {
+      await cloudinary.v2.uploader.destroy(user.avatar?.public_id, {
+        folder: "astro",
+      });
+    }
+    await user.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "user has been delete",
+      user,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//----------- user contact model------------
+export const UserContact = async (req, res) => {
+  try {
+    const { name, email, phone, message, subject } = req.body;
+    if (!name || !email || !phone || !message || !subject) {
+      return res.status(400).json({
+        success: false,
+        message: "all input required",
+      });
+    }
+
+    await Contact.create({ name, email, phone, message, subject });
 
     res.status(200).json({
       success: true,
@@ -320,106 +460,4 @@ export const UserEnrolledInCourse = async (req, res) => {
       message: error.message,
     });
   }
-};
-
-// ----------------admin controllers -----------------------
-
-export const AdminGetAllUser = async (req, res) => {
-  try {
-    let user = await User.find();
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Sorry Admin - user not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-export const AdminGetSingleUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    let user = await User.findById(userId).populate("meeting", "name");
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Sorry Admin - user not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-export const AdminDeleteUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    let user = await User.findById(userId);
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Sorry Admin - user is not in our DataBase",
-      });
-    }
-    await cloudinary.v2.uploader.destroy(user.avatar.public_id, {
-      folder: "astro",
-    });
-    await user.deleteOne();
-
-    res.status(200).json({
-      success: true,
-      message: "user has been delete",
-      user,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-//----------- user contact model------------
-export const UserContact = async (req, res) => {
-  try {
-    const { name, email, phone } = req.body;
-    if (!name || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: "name email phone required",
-      });
-    }
-
-    let user = await Contact.create({ name, email, phone });
-
-    res.status(200).json({
-      success: true,
-      message: "Message has been send",
-      user,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+}; 

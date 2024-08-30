@@ -32,6 +32,8 @@ export const AstrologerSignup = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -73,6 +75,8 @@ export const AstrologerLogin = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -93,8 +97,10 @@ export const AstrologerLogout = async (req, res) => {
       .status(200)
       .cookie("token", null, {
         expires: new Date(Date.now()),
-        sameSite: "none",
-        secure: true,
+        httpOnly: true,
+
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -156,9 +162,10 @@ export const AstrologerUpdateProfile = async (req, res) => {
     if (email) astrologer.email = email;
     if (phone) astrologer.phone = phone;
     if (address) astrologer.address = address;
+
     if (about) astrologer.about = about;
-    if (education) astrologer.education = education;
-    if (experience) astrologer.experience = experience;
+    // if (education) astrologer.education.push(education);
+    // if (experience) astrologer.experience.push(experience);
     if (chargePerMin) astrologer.chargePerMin = chargePerMin;
     if (language) astrologer.language = language;
     if (avatar) {
@@ -181,6 +188,176 @@ export const AstrologerUpdateProfile = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AstrologeUpdateAvatar = async (req, res) => {
+  try {
+    const { avatar } = req.body;
+    let astrologer = await Astrologer.findById(req.user._id);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
+
+    if (avatar) {
+      if (astrologer.avatar.public_id) {
+        await cloudinary.v2.uploader.destroy(astrologer.avatar.public_id, {
+          folder: "astro",
+        });
+      }
+      const Myuploader = await cloudinary.v2.uploader.upload(avatar, {
+        folder: "astro",
+      });
+      astrologer.avatar.public_id = Myuploader.public_id;
+      astrologer.avatar.url = Myuploader.url;
+    }
+
+    await astrologer.save({ validateBeforeSave: false });
+
+    res.status(201).json({
+      success: true,
+      message: "astrologer avatar change Success",
+      astrologer,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AstrologerAddNewExpAndEdu = async (req, res) => {
+  try {
+    const { education, experience } = req.body;
+
+    // Find the astrologer by their ID
+    let astrologer = await Astrologer.findById(req.user._id);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Session timed out. Please log in again.",
+      });
+    }
+
+    // Add new education if provided
+    if (education) {
+      astrologer.education.push({
+        edu: education,
+      });
+    }
+
+    // Add new experience if provided
+    if (experience) {
+      astrologer.experience.push({
+        exp: experience,
+      });
+    }
+
+    // Save the updated astrologer document
+    await astrologer.save({ validateBeforeSave: false });
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message: "Astrologer updated successfully",
+      astrologer,
+    });
+  } catch (error) {
+    // Handle any errors
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AstrologerDeleteExp = async (req, res) => {
+  try {
+    const { expId } = req.params;
+
+    // Find the astrologer by their ID
+    let astrologer = await Astrologer.findById(req.user._id);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Session timed out. Please log in again.",
+      });
+    }
+
+    // Find the experience by ID
+    const Myexp = astrologer.experience.id(expId);
+    if (!Myexp) {
+      return res.status(400).json({
+        success: false,
+        message: "Experience not found",
+      });
+    }
+
+    // Remove the experience from the array
+    await Myexp.deleteOne();
+
+    // Save the updated astrologer document
+    await astrologer.save({ validateBeforeSave: false });
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message: "Experience removed successfully",
+      astrologer,
+    });
+  } catch (error) {
+    // Handle any errors
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AstrologerDeleteEdu = async (req, res) => {
+  try {
+    const { eduId } = req.params;
+
+    // Find the astrologer by their ID
+    let astrologer = await Astrologer.findById(req.user._id);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Session timed out. Please log in again.",
+      });
+    }
+
+    // Find the experience by ID
+    const Myedu = astrologer.education.id(eduId);
+    if (!Myedu) {
+      return res.status(400).json({
+        success: false,
+        message: "education not found",
+      });
+    }
+
+    // Remove the education from the array
+    await Myedu.deleteOne();
+
+    // Save the updated astrologer document
+    await astrologer.save({ validateBeforeSave: false });
+
+    // Respond with success
+    res.status(200).json({
+      success: true,
+      message: "education removed successfully",
+      astrologer,
+    });
+  } catch (error) {
+    // Handle any errors
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -392,7 +569,32 @@ export const GetAllAstrologer = async (req, res) => {
     });
   }
 };
+ 
 export const GetSingleAstrologer = async (req, res) => {
+  try {
+    const { astrologerId } = req.params;
+
+    let astrologer = await Astrologer.findById(astrologerId);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "astrologer not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      astrologer,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const GetSingleInstructors = async (req, res) => {
   try {
     const { astrologerId } = req.params;
 
@@ -428,15 +630,16 @@ export const AdminDeleteAstrologer = async (req, res) => {
         message: "Sorry Admin - astrologer is not in our DataBase",
       });
     }
-    //   await cloudinary.v2.uploader.destroy(astrologer.avatar.public_id, {
-    //     folder: "astro",
-    //   });
+    if (astrologer.avatar?.public_id) {
+      await cloudinary.v2.uploader.destroy(astrologer.avatar.public_id, {
+        folder: "astro",
+      });
+    }
     await astrologer.deleteOne();
 
     res.status(200).json({
       success: true,
       message: "astrologer has been delete",
-      astrologer,
     });
   } catch (error) {
     return res.status(400).json({
@@ -465,6 +668,52 @@ export const AdminActiveAstrologer = async (req, res) => {
       success: true,
       message: "Astrologer has been activated",
       astrologer,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AdminDeleteAstrologerReview = async (req, res) => {
+  try {
+    const { astrologerId } = req.params;
+    const { reviewId } = req.body;
+
+
+    let astrologer = await Astrologer.findById(astrologerId);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "astrologer not found",
+      });
+    }
+
+    let review = astrologer.review.filter((rev) => {
+      return rev._id.toString() !== reviewId.toString();
+    });
+
+    if (!review) {
+      return res.status(400).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+    let avg = 0;
+    review.forEach((rev) => {
+      avg += rev.rating;
+    });
+
+    astrologer.rating = avg / review.length;
+    astrologer.review = review;
+
+    await astrologer.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "review has been delete",
     });
   } catch (error) {
     return res.status(400).json({

@@ -21,7 +21,7 @@ export const AstrologerAuthentication = async (req, res, next) => {
   if (!token) {
     return res.status(400).json({
       success: false,
-      message: "Login First",
+      message: "Login First in Astrologer-middleware",
     });
   }
 

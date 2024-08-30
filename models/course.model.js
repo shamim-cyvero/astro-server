@@ -7,9 +7,11 @@ const courseSchema = new mongoose.Schema(
       required: [true, "name field required"],
       minLength: [4, "name must have four character"],
       trim: true,
-      lowercase: true,
     },
     description: {
+      type: String,
+    },
+    category: {
       type: String,
     },
     price: {
@@ -50,6 +52,7 @@ const courseSchema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 0,
+      set: (value) => Math.round(value * 10) / 10, // Rounds to 1 decimal place
     },
 
     review: [
@@ -70,6 +73,20 @@ const courseSchema = new mongoose.Schema(
         },
         rating: {
           type: Number,
+        },
+      },
+    ],
+    enrolledUsers: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+        },
+        payment_id: {
+          type: String,
+        },
+        date: {
+          type: Date,
         },
       },
     ],

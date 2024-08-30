@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema( 
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, "name field required"],
       minLength: [4, "name must have four character"],
       trim: true,
-      lowercase: true,
     },
 
     email: {
@@ -37,7 +36,7 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
       url: {
-        type: String, 
+        type: String,
       },
     },
 
@@ -55,8 +54,16 @@ const userSchema = new mongoose.Schema(
     ],
     course: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "course",
+        courseId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "course",
+        },
+        payment_id: {
+          type: String,
+        },
+        date: {
+          type: Date,
+        },
       },
     ],
 

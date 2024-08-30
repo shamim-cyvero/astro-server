@@ -4,11 +4,11 @@ import { User } from "../models/user.model.js";
 
 export const AdminCreateCourse = async (req, res) => {
   try {
-    const { name, description, price, banner } = req.body;
+    const { name, description, price, banner, category } = req.body;
     if (!name || !description || !price) {
       return res.status(400).json({
         success: false,
-        message: "name description price required",
+        message: "name description category price required",
       });
     }
     if (banner) {
@@ -19,12 +19,13 @@ export const AdminCreateCourse = async (req, res) => {
         name,
         description,
         price,
+        category,
         banner: {
           public_id: Myuploader.public_id,
           url: Myuploader.url,
         },
       });
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "course has been create ",
         course,
@@ -33,6 +34,7 @@ export const AdminCreateCourse = async (req, res) => {
     let course = await Course.create({
       name,
       description,
+      category,
       price,
     });
 
@@ -96,7 +98,7 @@ export const AdminAddLectureVideo = async (req, res) => {
     if (!video || !title) {
       return res.status(400).json({
         success: false,
-        message: "title description required",
+        message: "title video required",
       });
     }
     let course = await Course.findById(courseId);
@@ -114,12 +116,13 @@ export const AdminAddLectureVideo = async (req, res) => {
         message: "lecture not found",
       });
     }
-    // const Myuploader = await cloudinary.v2.uploader.upload(video, {
-    //   folder: "astro",
-    // });
+    const Myuploader = await cloudinary.v2.uploader.upload(video, {
+      resource_type: "video", // Ensure Cloudinary knows this is a video
+      folder: "astro",
+    });
     let newVideo = {
-      public_id: "fake id and url",
-      url: "fake id and url",
+      public_id: Myuploader.public_id,
+      url: Myuploader.url,
       title,
     };
     lecture.video.push(newVideo);
@@ -197,9 +200,16 @@ export const AdminDeleteCourse = async (req, res) => {
         message: "course not found",
       });
     }
+
+    // Delete banner  from Cloudinary
+    await cloudinary.v2.uploader.destroy(course.banner?.public_id, {
+      folder: "astro",
+    });
+
     // Delete each video from Cloudinary
     for (const video of course.lectures) {
-      await cloudinary.v2.uploader.destroy(video.public_id, {
+      await cloudinary.v2.uploader.destroy(video?.public_id, {
+        resource_type: "video", // Ensure Cloudinary knows this is a video
         folder: "astro",
       });
     }
@@ -246,11 +256,13 @@ export const AdminDeleteLecture = async (req, res) => {
     const lecture = course.lectures[lectureIndex];
 
     // Delete each video from Cloudinary
-    // for (const video of lecture.video) {
-    //   await cloudinary.v2.uploader.destroy(video.public_id, {
-    //     folder: "astro",
-    //   });
-    // }
+    if (lecture.video) {
+      for (const video of lecture.video) {
+        await cloudinary.v2.uploader.destroy(video.public_id, {
+          folder: "astro",
+        });
+      }
+    }
 
     // Remove the lecture from the course
     course.lectures.splice(lectureIndex, 1);
@@ -304,9 +316,11 @@ export const AdminDeleteLectureVideo = async (req, res) => {
     const video = lecture.video[videoIndex];
 
     // Delete the video from Cloudinary
-    await cloudinary.v2.uploader.destroy(video.public_id, {
-      folder: "astro",
-    });
+    if (video) {
+      await cloudinary.v2.uploader.destroy(video.public_id, {
+        folder: "astro",
+      });
+    }
 
     // Remove the video from the lecture's video array
     lecture.video.splice(videoIndex, 1);
@@ -543,7 +557,50 @@ export const CreateCourseReview = async (req, res) => {
     });
   }
 };
+export const AdminDeleteCourseReview = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { reviewId } = req.body;
 
+    let course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    let review = course.review.filter((rev) => {
+      return rev._id.toString() !== reviewId.toString();
+    });
+
+    if (!review) {
+      return res.status(400).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+    let avg = 0;
+    review.forEach((rev) => {
+      avg += rev.rating;
+    });
+
+    course.rating = avg / review.length;
+    course.review = review;
+
+    await course.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "review has been delete",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 export const UserDeleteCourseReview = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -579,6 +636,71 @@ export const UserDeleteCourseReview = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "review has been delete",
+      course,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const SearchCourse = async (req, res) => {
+  try {
+    let course;
+    if (req.params.key) {
+      course = await Course.find({
+        $or: [
+          { name: { $regex: req.params.key } },
+          { category: { $regex: req.params.key } },
+        ],
+      });
+    } else {
+      course = await Course.find();
+    }
+
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "course not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "course loadedd",
+      course,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const SearchCourseByCategory = async (req, res) => {
+  try {
+    let course;
+    if (req.params.key) {
+      course = await Course.find({
+        $or: [{ category: { $regex: req.params.key, $options: "i" } }],
+      });
+    } else {
+      course = await Course.find();
+    }
+
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "course not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "course loadedd",
       course,
     });
   } catch (error) {
