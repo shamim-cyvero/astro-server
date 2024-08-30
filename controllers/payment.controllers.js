@@ -91,10 +91,18 @@ export const PaymentVerfication = async (req, res) => {
         date: Date(Date.now()),
         user: user._id,
       };
-      course.enrolledUsers.push(data2);
-      user.res.redirect(
-        `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
-      );
+      course.enrolledUsers.push(data2); 
+
+    await course.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
+      
+      // user.res.redirect(
+      //   `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
+      // );
+      res.status(200).json({
+        success: true,
+        message: "payment success",
+      });
     } else {
       res.status(400).json({
         success: false,
