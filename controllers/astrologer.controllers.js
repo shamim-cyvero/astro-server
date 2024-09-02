@@ -32,8 +32,8 @@ export const AstrologerSignup = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
-        // sameSite:"none",
-        // secure:true,
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -75,8 +75,8 @@ export const AstrologerLogin = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
-        // sameSite:"none",
-        // secure:true,
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,
@@ -99,8 +99,8 @@ export const AstrologerLogout = async (req, res) => {
         expires: new Date(Date.now()),
         httpOnly: true,
 
-        // sameSite:"none",
-        // secure:true,
+        sameSite:"none",
+        secure:true,
       })
       .json({
         success: true,

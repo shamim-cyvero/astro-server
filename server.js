@@ -1,10 +1,11 @@
 import express from "express";
-import { DataBaseConnection } from "./dataBase/DB.js";
 import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
 import Razorpay from "razorpay";
+import DataBaseConnection from "./DataBase/DB.js";
+
 
 config({ path: "./config/config.env" });
 

@@ -8,8 +8,6 @@ router.route("/key").get(authentication,Getkey);
 router.route("/process").post(authentication,PaymentProcess);
 router.route("/verfication").post(PaymentVerfication);
 
-// router.post('/payment',Payment) 
-// router.post('/paymentverfication',PaymentVerfication)
 
 
 
