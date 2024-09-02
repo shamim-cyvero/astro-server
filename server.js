@@ -4,7 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
 import Razorpay from "razorpay";
-import dbConnection from "./dataBase/DB.js";
+import dbConnection from "./DataBase/DB.js";
 
 config({ path: "./config/config.env" });
 

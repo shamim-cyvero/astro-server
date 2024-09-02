@@ -6,8 +6,8 @@ const dbConnection = () => {
     .then((res) => {
       console.log(`Data Base Connected with ${res.connection.host}`);
     })
-    .catch((err) => {
-      console.log(`error ${err}`);
+    .catch((error) => {
+      console.log(`error ${error}`);
     });
 }; 
 export default dbConnection;
