@@ -4,10 +4,10 @@ import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
-import Razorpay from 'razorpay'
-
+import Razorpay from "razorpay";
 
 config({ path: "./config/config.env" });
+
 DataBaseConnection();
 
 const app = express();
@@ -18,7 +18,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://new-astrosoull.vercel.app"],
+    origin: ["http://localhost:5173", "https://new-astrosoull.vercel.app"],
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
@@ -44,18 +44,15 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/blog", blogRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 
-
-export const instance=new Razorpay({
-  key_id:process.env.RAZORPAY_API_KEY,
-  key_secret:process.env.RAZORPAY_API_SECRET 
-})
-
+export const instance = new Razorpay({
+  key_id: process.env.RAZORPAY_API_KEY,
+  key_secret: process.env.RAZORPAY_API_SECRET,
+});
 // app.on()
 app.get("/", (req, res) => {
   res.send("server is working");
 });
 
-
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 9000, () => {
   console.log(`server is running on port ${process.env.PORT}`);
 });
