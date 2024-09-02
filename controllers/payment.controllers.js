@@ -21,14 +21,15 @@ export const PaymentProcess = async (req, res) => {
   try {
     const { price } = req.body;
 
+    const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_API_KEY,
+      key_secret: process.env.RAZORPAY_API_SECRET,
+    });
+
     const options = {
       amount: Number(price * 100),
       currency: "INR",
     };
-     const instance = new Razorpay({
-      key_id: process.env.RAZORPAY_API_KEY,
-      key_secret: process.env.RAZORPAY_API_SECRET,
-    });
 
     let order = await instance.orders.create(options);
 
@@ -50,7 +51,9 @@ export const PaymentVerfication = async (req, res) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       req.body;
-
+    console.log(razorpay_payment_id);
+    console.log(razorpay_order_id);
+    console.log(razorpay_signature);
     const { courseId } = req.params;
     let user = await User.findById(req.user._id);
     if (!user) {
@@ -59,6 +62,7 @@ export const PaymentVerfication = async (req, res) => {
         message: "Time-Out Please! Login",
       });
     }
+    console.log(user);
 
     let course = await Course.findById(courseId);
     if (!course) {
@@ -67,6 +71,7 @@ export const PaymentVerfication = async (req, res) => {
         message: "course not found",
       });
     }
+    console.log(course);
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -95,11 +100,11 @@ export const PaymentVerfication = async (req, res) => {
         date: Date(Date.now()),
         user: user._id,
       };
-      course.enrolledUsers.push(data2); 
+      course.enrolledUsers.push(data2);
 
-    await course.save({ validateBeforeSave: false });
-    await user.save({ validateBeforeSave: false });
-      
+      await course.save({ validateBeforeSave: false });
+      await user.save({ validateBeforeSave: false });
+
       // user.res.redirect(
       //   `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
       // );

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.route("/key").get(authentication,Getkey);
 router.route("/process").post(authentication,PaymentProcess);
-router.route("/verfication").post(PaymentVerfication);
+router.route("/verfication/:courseId").post(PaymentVerfication);
 
 
 
