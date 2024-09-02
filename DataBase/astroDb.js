@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const dbConnection = () => {
+const astroDb = () => {
   mongoose
     .connect(process.env.DATA_BASE_URL)
     .then((res) => {
@@ -10,4 +10,4 @@ const dbConnection = () => {
       console.log(`error ${error}`);
     });
 }; 
-export default dbConnection;
+export default astroDb;

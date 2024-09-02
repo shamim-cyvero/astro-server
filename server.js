@@ -3,12 +3,18 @@ import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
-import Razorpay from "razorpay";
-import dbConnection from "./DataBase/DB.js";
+
+import astrologerRoutes from "./routes/astrologer.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import blogRoutes from "./routes/blog.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+
+import astroDb from "./DataBase/astroDb.js";
 
 config({ path: "./config/config.env" });
 
-dbConnection();
+astroDb()
 
 const app = express();
 
@@ -32,11 +38,7 @@ cloudinary.config({
 });
 
 // all routes
-import astrologerRoutes from "./routes/astrologer.routes.js";
-import userRoutes from "./routes/user.routes.js";
-import courseRoutes from "./routes/course.routes.js";
-import blogRoutes from "./routes/blog.routes.js";
-import paymentRoutes from "./routes/payment.routes.js";
+
 
 
 app.use("/api/v1/astrologer", astrologerRoutes);
@@ -45,11 +47,6 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/blog", blogRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 
-export const instance = new Razorpay({
-  key_id: process.env.RAZORPAY_API_KEY,
-  key_secret: process.env.RAZORPAY_API_SECRET,
-});
-// app.on()
 app.get("/", (req, res) => {
   res.send("server is working");
 });

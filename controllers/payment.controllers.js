@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { instance } from "../server.js";
+import Razorpay from "razorpay";
 import { Payment } from "../models/payment.model.js";
 import { Course } from "../models/course.model.js";
 import { User } from "../models/user.model.js";
@@ -25,6 +25,10 @@ export const PaymentProcess = async (req, res) => {
       amount: Number(price * 100),
       currency: "INR",
     };
+     const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_API_KEY,
+      key_secret: process.env.RAZORPAY_API_SECRET,
+    });
 
     let order = await instance.orders.create(options);
 
