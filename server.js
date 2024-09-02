@@ -4,12 +4,11 @@ import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
 import Razorpay from "razorpay";
-import DataBaseConnection from "./DataBase/DB.js";
-
+import dbConnection from "./dataBase/DB.js";
 
 config({ path: "./config/config.env" });
 
-DataBaseConnection();
+dbConnection();
 
 const app = express();
 
@@ -38,6 +37,7 @@ import userRoutes from "./routes/user.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+
 
 app.use("/api/v1/astrologer", astrologerRoutes);
 app.use("/api/v1/user", userRoutes);

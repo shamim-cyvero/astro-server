@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const DataBaseConnection = () => {
+const dbConnection = () => {
   mongoose
     .connect(process.env.DATA_BASE_URL)
     .then((res) => {
@@ -10,4 +10,4 @@ const DataBaseConnection = () => {
       console.log(`error ${err}`);
     });
 }; 
-export default DataBaseConnection;
+export default dbConnection;
