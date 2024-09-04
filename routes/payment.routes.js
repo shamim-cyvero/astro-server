@@ -1,12 +1,14 @@
 import express from "express";
-import { Getkey, PaymentProcess, PaymentVerfication } from "../controllers/payment.controllers.js";
-import { authentication } from "../middleware/authentication.js";
+import { AdminGetAllTransaction,  Getkey, PaymentProcess, PaymentVerfication } from "../controllers/payment.controllers.js";
+import { AdminAuthentication, AstrologerAuthentication, authentication } from "../middleware/authentication.js";
 
 const router = express.Router();
 
 router.route("/key").get(authentication,Getkey);
 router.route("/process").post(authentication,PaymentProcess);
-router.route("/verfication/:courseId").post(PaymentVerfication);
+// router.route("/verfication").post(authentication,PaymentVerfication);
+router.route("/verfication/:courseId").post(authentication,PaymentVerfication);
+router.route("/get/all").get(AstrologerAuthentication ,AdminAuthentication,AdminGetAllTransaction);
 
 
 

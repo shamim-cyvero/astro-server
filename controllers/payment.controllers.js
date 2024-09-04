@@ -51,9 +51,7 @@ export const PaymentVerfication = async (req, res) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       req.body;
-    console.log(razorpay_payment_id);
-    console.log(razorpay_order_id);
-    console.log(razorpay_signature);
+
     const { courseId } = req.params;
     let user = await User.findById(req.user._id);
     if (!user) {
@@ -62,7 +60,6 @@ export const PaymentVerfication = async (req, res) => {
         message: "Time-Out Please! Login",
       });
     }
-    console.log(user);
 
     let course = await Course.findById(courseId);
     if (!course) {
@@ -71,7 +68,6 @@ export const PaymentVerfication = async (req, res) => {
         message: "course not found",
       });
     }
-    console.log(course);
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -87,11 +83,22 @@ export const PaymentVerfication = async (req, res) => {
         razorpay_payment_id,
         razorpay_order_id,
         razorpay_signature,
+
+        courseId: courseId,
+        price: course.price,
+        courseName: course.name,
+
+        user: user._id,
+        userName: user.name,
+        email: user.email,
+        phone: user.phone,
       });
       const data = {
         payment_id: razorpay_payment_id,
         date: Date(Date.now()),
         courseId: course._id,
+        name: course.name,
+        price: course.price,
       };
       user.course.push(data);
 
@@ -99,25 +106,63 @@ export const PaymentVerfication = async (req, res) => {
         payment_id: razorpay_payment_id,
         date: Date(Date.now()),
         user: user._id,
+        name: user.name,
+        price: course.price,
+        email: user.email,
+        phone: user.phone,
       };
       course.enrolledUsers.push(data2);
 
       await course.save({ validateBeforeSave: false });
       await user.save({ validateBeforeSave: false });
 
-      // user.res.redirect(
-      //   `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
-      // );
-      res.status(200).json({
-        success: true,
-        message: "payment success",
-      });
+      res.redirect(
+        `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
+      );
+      // res.status(200).json({
+      //   success: true,
+      //   message: "payment success",
+      // });
     } else {
       return res.status(400).json({
         success: false,
         message: "something went wrong",
       });
     }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AdminGetAllTransaction = async (req, res) => {
+  try {
+    const payments = await Payment.find();
+    if (!payments || payments.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No payments found",
+      });
+    }
+
+    // Calculate total earnings by summing the price of all payments
+    // const totalEarnings = payments.reduce((total, payment) => {
+    //   return total + payment.price;
+    // }, 0);
+
+    let totalEarnings = 0;
+    payments.forEach((rev) => {
+      totalEarnings += rev.price;
+    });  
+
+
+    res.status(200).json({
+      success: true,
+      totalEarnings,
+      payments,
+    });
   } catch (error) {
     return res.status(400).json({
       success: false,

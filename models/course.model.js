@@ -88,6 +88,20 @@ const courseSchema = new mongoose.Schema(
         date: {
           type: Date,
         },
+        name: {
+          type: String,
+        },
+        price: {
+          type: Number,
+        },
+        email: {
+          type: String,
+          unique: true,
+        },
+
+        phone: {
+          type: Number,
+        },
       },
     ],
   },
