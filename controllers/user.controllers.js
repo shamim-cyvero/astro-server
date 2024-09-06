@@ -299,7 +299,7 @@ export const EmailContact = async (req, res) => {
     const subject = "Contact from  astrosoull";
     const UserEmail = process.env.SMTP_SENDER_EMAIL;
     const message = `Hi, My Email is ${email}`;
-    sendEmail(subject, UserEmail, message); 
+    sendEmail(subject, UserEmail, message);
 
     res.status(200).json({
       success: true,
@@ -419,7 +419,7 @@ export const UserContact = async (req, res) => {
 //----------- user enrolled in the course------------
 export const UserEnrolledInCourse = async (req, res) => {
   try {
-    const { courseId } = req.params;
+    const { courseId } = req.body;
 
     let course = await Course.findById(courseId);
     if (!course) {
@@ -435,29 +435,25 @@ export const UserEnrolledInCourse = async (req, res) => {
         message: "Time-Out Please! Login",
       });
     }
-    let existUser = await course.enrolledUser.id(user._id);
-    if (existUser) {
+    let isEnrolled = false;
+    isEnrolled = course.enrolledUsers.some(
+      (rev) => rev.user.toString() === req.user._id.toString()
+    );
+
+    if (isEnrolled) {
       return res.status(400).json({
-        success: false,
-        message: "you already enrolled in this course",
+        isEnrolled,
+        message: `${user.name} is already enrolled in this course`,
+      });
+    } else {
+      return res.status(400).json({
+        isEnrolled,
       });
     }
-
-    //here payment logic
-
-    course.enrolledUser.push(req.user._id);
-    user.course.push(course._id);
-    await course.save({ validateBeforeSave: false });
-    await user.save({ validateBeforeSave: false });
-
-    res.status(200).json({
-      success: true,
-      message: "Message has been send",
-    });
   } catch (error) {
     return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
-}; 
+};

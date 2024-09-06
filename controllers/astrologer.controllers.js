@@ -146,9 +146,8 @@ export const AstrologerUpdateProfile = async (req, res) => {
       avatar,
       address,
       about,
-      education,
-      experience,
       chargePerMin,
+      expert,
       language,
     } = req.body;
     let astrologer = await Astrologer.findById(req.user._id);
@@ -162,6 +161,7 @@ export const AstrologerUpdateProfile = async (req, res) => {
     if (email) astrologer.email = email;
     if (phone) astrologer.phone = phone;
     if (address) astrologer.address = address;
+    if (expert) astrologer.expert = expert;
 
     if (about) astrologer.about = about;
     // if (education) astrologer.education.push(education);

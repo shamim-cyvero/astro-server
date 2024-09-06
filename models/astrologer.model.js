@@ -31,15 +31,15 @@ const astrologerSchema = new mongoose.Schema(
       {
         edu: {
           type: String,
-        }
-      }
+        },
+      },
     ],
     experience: [
       {
         exp: {
           type: String,
-        }
-      }
+        },
+      },
     ],
     avatar: {
       public_id: {
@@ -85,11 +85,13 @@ const astrologerSchema = new mongoose.Schema(
     chargePerMin: {
       type: Number,
     },
-    language: [
-      {
-        type: String,
-      },
-    ],
+    expert: {
+      type: String,
+    },
+    language: {
+      type: String,
+    },
+
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },

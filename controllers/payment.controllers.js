@@ -6,9 +6,41 @@ import { User } from "../models/user.model.js";
 
 export const Getkey = async (req, res) => {
   try {
-    res.status(200).json({
+    const { courseId } = req.body;
+
+    // Check if user exists
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
+
+    // Check if course exists
+    let course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(400).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Check if user is already enrolled
+    const isEnrolled = course.enrolledUsers.some((rev) => rev.user.toString() === req.user._id.toString());
+
+    if (isEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: `${user.name} is already enrolled in this course`,
+      });
+    }
+
+    // If not enrolled, return the payment key
+    return res.status(200).json({
       key: process.env.RAZORPAY_API_KEY,
     });
+
   } catch (error) {
     return res.status(400).json({
       success: false,
@@ -77,6 +109,7 @@ export const PaymentVerfication = async (req, res) => {
       .digest("hex");
 
     const isAuthentic = expectedSignature === razorpay_signature;
+    console.log(isAuthentic);
 
     if (isAuthentic) {
       await Payment.create({
@@ -155,8 +188,7 @@ export const AdminGetAllTransaction = async (req, res) => {
     let totalEarnings = 0;
     payments.forEach((rev) => {
       totalEarnings += rev.price;
-    });  
-
+    });
 
     res.status(200).json({
       success: true,

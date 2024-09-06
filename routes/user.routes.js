@@ -17,7 +17,7 @@ router.route("/reset/password/:token").put(UserResetPassword);
 
 
 //user enrolled in the course
-router.route("/enrolled/course/:courseId").put(authentication,UserEnrolledInCourse); 
+router.route("/enrolled/course").post(authentication,UserEnrolledInCourse); 
 
 // user contact model
 router.route("/contact").post(UserContact);

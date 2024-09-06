@@ -4,7 +4,7 @@ import { AdminAuthentication, AstrologerAuthentication, authentication } from ".
 
 const router = express.Router();
 
-router.route("/key").get(authentication,Getkey);
+router.route("/key").post(authentication,Getkey);
 router.route("/process").post(authentication,PaymentProcess);
 // router.route("/verfication").post(authentication,PaymentVerfication);
 router.route("/verfication/:courseId").post(authentication,PaymentVerfication);
