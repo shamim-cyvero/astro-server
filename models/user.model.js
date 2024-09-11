@@ -48,8 +48,32 @@ const userSchema = new mongoose.Schema(
 
     meeting: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "astrologer",
+        astrologer: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "astrologer",
+        },
+        astrologerName: {
+          type: String,
+        },
+        astrologerAvatar: {
+          type: String,
+        },
+        duration: {
+          type: String,
+        },
+        date: {
+          type: String,
+        },
+        time: {
+          type: String,
+        },
+        price: {
+          type: Number,
+        },
+        razorpay_payment_id: {
+          type: String,
+          required: true,
+        },
       },
     ],
     course: [

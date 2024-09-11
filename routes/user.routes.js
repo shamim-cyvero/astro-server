@@ -1,5 +1,5 @@
 import express from "express";
-import { UserForgetPassword, UserResetPassword, UserLogin, UserLogout, UserProfile, UserSignup, UserUpdateProfile, UserContact, EmailContact, AdminGetAllUser, AdminDeleteUser,  AdminGetSingleUser, UserEnrolledInCourse, UserUpdateAvatar } from "../controllers/user.controllers.js";
+import { UserForgetPassword, UserResetPassword, UserLogin, UserLogout, UserProfile, UserSignup, UserUpdateProfile, UserContact, EmailContact, AdminGetAllUser, AdminDeleteUser,  AdminGetSingleUser, UserEnrolledInCourse, UserUpdateAvatar, PaymentGetkeyMeeting, MeetingPaymentProcess, MeetingPaymentVerfication } from "../controllers/user.controllers.js";
 import { AdminAuthentication, AstrologerAuthentication, authentication } from "../middleware/authentication.js";
 
 const router = express.Router();
@@ -16,10 +16,17 @@ router.route("/forget/password").post(UserForgetPassword);
 router.route("/reset/password/:token").put(UserResetPassword);
 
 
-//user enrolled in the course
+//------------------user Payment for meeting ----------------------
+router.route("/get/key/meeting/payment").get(authentication,PaymentGetkeyMeeting); 
+router.route("/meeting/payment/process").post(authentication,MeetingPaymentProcess);
+router.route("/meeting/payment/verfication/:astrologerId").post(authentication,MeetingPaymentVerfication);
+
+
+
+//------------------user enrolled in the course----------------------
 router.route("/enrolled/course").post(authentication,UserEnrolledInCourse); 
 
-// user contact model
+//------------------ user contact model--------------------------
 router.route("/contact").post(UserContact);
 router.route("/contact/email").post(EmailContact);
 

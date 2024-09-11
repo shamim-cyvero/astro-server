@@ -82,6 +82,46 @@ const astrologerSchema = new mongoose.Schema(
         },
       },
     ],
+
+    meeting: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+        },
+        userName: {
+          type: String,
+        },
+        userAvatar: {
+          type: String,
+        },
+        duration: {
+          type: String,
+        },
+        date: {
+          type: String,
+        },
+        time: {
+          type: String,
+        },
+        price: {
+          type: Number,
+        },
+        razorpay_payment_id: {
+          type: String,
+          required: true,
+        },
+        razorpay_order_id: {
+          type: String,
+          required: true,
+        },
+        razorpay_signature: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+
     chargePerMin: {
       type: Number,
     },

@@ -6,6 +6,8 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import cloudinary from "cloudinary";
 import { Course } from "../models/course.model.js";
+import Razorpay from "razorpay";
+import { Astrologer } from "../models/astrologer.model.js";
 
 export const UserSignup = async (req, res) => {
   try {
@@ -448,6 +450,146 @@ export const UserEnrolledInCourse = async (req, res) => {
     } else {
       return res.status(400).json({
         isEnrolled,
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//----------------payment for meeting---------------------
+
+export const PaymentGetkeyMeeting = async (req, res) => {
+  try {
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
+
+    // If not enrolled, return the payment key
+    return res.status(200).json({
+      key: process.env.RAZORPAY_API_KEY,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const MeetingPaymentProcess = async (req, res) => {
+  try {
+    const { price } = req.body;
+
+    const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_API_KEY,
+      key_secret: process.env.RAZORPAY_API_SECRET,
+    });
+
+    const options = {
+      amount: Number(price * 100),
+      currency: "INR",
+    };
+
+    let order = await instance.orders.create(options);
+
+    res.status(201).json({
+      success: true,
+      message: "order has created",
+      order,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+      message: "created error",
+    });
+  }
+};
+
+export const MeetingPaymentVerfication = async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+      req.body;
+      const { price, duration, date, time } = req.query;
+      const { astrologerId } = req.params;
+
+      let astrologer = await Astrologer.findById(astrologerId);
+      if (!astrologer) {
+        return res.status(400).json({
+          success: false,
+          message: "astrologer not found",
+        });
+      }
+
+      let user = await User.findById(req.user._id);
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Time-Out Please! Login",
+        });
+      }
+
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+
+      const data = {
+        user: user._id,
+        userName: user.name,
+        userAvatar: user.avatar.url,
+        duration: duration,
+        date: date,
+        time: time,
+        price: price,
+
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+      };
+      astrologer.meeting.push(data);
+
+      const data2 = {
+        astrologer: astrologer._id,
+        astrologerName: astrologer.name,
+        astrologerAvatar: astrologer.avatar.url,
+        duration: duration,
+        date: date,
+        time: time,
+        price: price,
+        payment_id: razorpay_payment_id,
+      };
+      user.meeting.push(data2);
+
+      await astrologer.save({ validateBeforeSave: false });
+      await user.save({ validateBeforeSave: false });
+
+      res.redirect(
+        `http://localhost:5173/paymentsuccess?refrence=${razorpay_payment_id}`
+      );
+      // res.status(200).json({
+      //   success: true,
+      //   message: "payment success",
+      // });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "something went wrong",
       });
     }
   } catch (error) {

@@ -202,3 +202,28 @@ export const AdminGetAllTransaction = async (req, res) => {
     });
   }
 };
+
+export const AdminDeleteTransaction = async (req, res) => {
+  try {
+    const { TranId } = req.params;
+    let transaction = await Payment.findById(TranId);
+    if (!transaction) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry Admin - transaction not found",
+      });
+    }
+
+    await transaction.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "transaction has been delete",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
