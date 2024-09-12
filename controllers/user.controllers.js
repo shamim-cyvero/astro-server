@@ -8,6 +8,7 @@ import cloudinary from "cloudinary";
 import { Course } from "../models/course.model.js";
 import Razorpay from "razorpay";
 import { Astrologer } from "../models/astrologer.model.js";
+import { UserAndEnrolledUser } from "../models/userAndEnrolledUser.model.js";
 
 export const UserSignup = async (req, res) => {
   try {
@@ -35,8 +36,8 @@ export const UserSignup = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
-        sameSite:"none",
-        secure:true,
+        sameSite: "none",
+        secure: true,
       })
       .json({
         success: true,
@@ -78,8 +79,8 @@ export const UserLogin = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         expires: new Date(Date.now() + 60 * 60 * 1000),
-        sameSite:"none",
-        secure:true,
+        sameSite: "none",
+        secure: true,
       })
       .json({
         success: true,
@@ -101,8 +102,8 @@ export const UserLogout = async (req, res) => {
       .cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
-        sameSite:"none",
-        secure:true,
+        sameSite: "none",
+        secure: true,
       })
       .json({
         success: true,
@@ -518,25 +519,24 @@ export const MeetingPaymentVerfication = async (req, res) => {
   try {
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       req.body;
-      const { price, duration, date, time } = req.query;
-      const { astrologerId } = req.params;
+    const { price, duration, date, time } = req.query;
+    const { astrologerId } = req.params;
 
-      let astrologer = await Astrologer.findById(astrologerId);
-      if (!astrologer) {
-        return res.status(400).json({
-          success: false,
-          message: "astrologer not found",
-        });
-      }
+    let astrologer = await Astrologer.findById(astrologerId);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "astrologer not found",
+      });
+    }
 
-      let user = await User.findById(req.user._id);
-      if (!user) {
-        return res.status(400).json({
-          success: false,
-          message: "Time-Out Please! Login",
-        });
-      }
-
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -548,7 +548,6 @@ export const MeetingPaymentVerfication = async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-
       const data = {
         user: user._id,
         userName: user.name,
@@ -599,3 +598,87 @@ export const MeetingPaymentVerfication = async (req, res) => {
     });
   }
 };
+
+export const GetUserAndEnrolledUserData = async (req, res) => {
+  try {
+    const stats = await UserAndEnrolledUser.find({})
+      .sort({ createdAt: "desc" })
+      .limit(12);
+
+    const statsData = [];
+
+    for (let i = 0; i < stats.length; i++) {
+      statsData.unshift(stats[i]);
+    }
+
+    const requiredSize = 12 - stats.length;
+    for (let i = 0; i < requiredSize; i++) {
+      statsData.unshift({
+        users: 0,
+        enrolledUsers: 0,
+      });
+    }
+
+    const usersCount = statsData[11].users;
+    const enrolledUsersCount = statsData[11].enrolledUsers;
+
+    let usersPercentage = 0;
+    let enrolledUsersPercentage = 0;
+
+    let usersProfit = true;
+    let enrolledUsersProfit = true;
+
+    if (statsData[10].users === 0) usersPercentage = usersCount * 100;
+    if (statsData[10].enrolledUsers === 0)
+      enrolledUsersPercentage = enrolledUsersCount * 100;
+    else {
+      const difference = {
+        users: statsData[11].users - statsData[10].users,
+        enrolledUsers:
+          statsData[11].enrolledUsers - statsData[10].enrolledUsers,
+      };
+
+      usersPercentage = (difference.users / statsData[10].users) * 100;
+      enrolledUsersPercentage =
+        (difference.enrolledUsers / statsData[10].enrolledUsers) * 100;
+
+      if (usersPercentage < 0) usersProfit = false;
+      if (enrolledUsersPercentage < 0) enrolledUsersProfit = false;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "data has been send",
+      statsData, //complete year data
+
+      //specific/last month data
+      usersCount,
+      enrolledUsersCount,
+
+      usersPercentage,
+      enrolledUsersPercentage,
+      usersProfit,
+      enrolledUsersProfit,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+User.watch().on("change", async () => {
+  const stats = await UserAndEnrolledUser.find({})
+    .sort({ createdAt: "desc" })
+    .limit(1);
+
+  const enrolledUserscount = await User.countDocuments({
+    "course.0": { $exists: true }, // Checks if there is at least one course in the array
+  });
+
+  stats[0].users = await User.countDocuments();
+  stats[0].enrolledUsers = enrolledUserscount;
+
+  await stats[0].save({ validateBeforeSave: false });
+});

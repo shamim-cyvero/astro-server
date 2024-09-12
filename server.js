@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
 import cors from "cors";
+import cron from "node-cron";
 
 import astrologerRoutes from "./routes/astrologer.routes.js";
 import userRoutes from "./routes/user.routes.js";
@@ -11,10 +12,11 @@ import blogRoutes from "./routes/blog.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 
 import astroDb from "./DataBase/astroDb.js";
+import { UserAndEnrolledUser } from "./models/userAndEnrolledUser.model.js";
 
 config({ path: "./config/config.env" });
 
-astroDb()
+astroDb();
 
 const app = express();
 
@@ -39,8 +41,6 @@ cloudinary.config({
 
 // all routes
 
-
-
 app.use("/api/v1/astrologer", astrologerRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/course", courseRoutes);
@@ -50,6 +50,20 @@ app.use("/api/v1/payment", paymentRoutes);
 app.get("/", (req, res) => {
   res.send("server is working");
 });
+
+cron.schedule("0 0 0 13 * *", async () => {
+  //run every month of 1 date
+  try {
+    await UserAndEnrolledUser.create({});
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// const test=async ()=>{
+//     await UserAndEnrolledUser.create({});
+// }
+// test()
 
 app.listen(process.env.PORT || 9000, () => {
   console.log(`server is running on port ${process.env.PORT}`);
