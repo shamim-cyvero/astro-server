@@ -51,19 +51,18 @@ app.get("/", (req, res) => {
   res.send("server is working");
 });
 
-cron.schedule("0 0 0 13 * *", async () => {
-  //run every month of 1 date
+// Run the task every month on the 1st day at midnight
+cron.schedule("0 0 0 1 * *", async () => {
   try {
+    // Create a new document in the UserAndEnrolledUser collection
     await UserAndEnrolledUser.create({});
+    console.log('UserAndEnrolledUser document created successfully.');
   } catch (error) {
-    console.log(error);
+    // Log any error that occurs during the creation
+    console.error("Error creating UserAndEnrolledUser document:", error);
   }
 });
 
-// const test=async ()=>{
-//     await UserAndEnrolledUser.create({});
-// }
-// test()
 
 app.listen(process.env.PORT || 9000, () => {
   console.log(`server is running on port ${process.env.PORT}`);

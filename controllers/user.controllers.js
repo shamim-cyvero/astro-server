@@ -668,17 +668,47 @@ export const GetUserAndEnrolledUserData = async (req, res) => {
   }
 };
 
-User.watch().on("change", async () => {
-  const stats = await UserAndEnrolledUser.find({})
-    .sort({ createdAt: "desc" })
-    .limit(1);
+// User.watch().on("change", async () => {
+//   const stats = await UserAndEnrolledUser.find({})
+//     .sort({ createdAt: "desc" })
+//     .limit(1);
 
-  const enrolledUserscount = await User.countDocuments({
-    "course.0": { $exists: true }, // Checks if there is at least one course in the array
-  });
+//   const enrolledUserscount = await User.countDocuments({
+//     "course.0": { $exists: true }, // Checks if there is at least one course in the array
+//   });
 
-  stats[0].users = await User.countDocuments();
-  stats[0].enrolledUsers = enrolledUserscount;
+//   stats[0].users = await User.countDocuments();
+//   stats[0].enrolledUsers = enrolledUserscount;
 
-  await stats[0].save({ validateBeforeSave: false });
+//   await stats[0].save({ validateBeforeSave: false });
+// });
+
+User.watch().on("change", async (change) => {
+  try {
+    // Watch specific types of operations if necessary (e.g., 'insert', 'update')
+    if (change.operationType === 'insert' || change.operationType === 'update') {
+      
+      // Fetch the most recent document from the UserAndEnrolledUser collection
+      const stats = await UserAndEnrolledUser.find({})
+        .sort({ createdAt: "desc" })
+        .limit(1);
+
+      // Count users with at least one course
+      const enrolledUsersCount = await User.countDocuments({
+        "course.0": { $exists: true }, // Checks if there is at least one course in the array
+      });
+
+      // Update the statistics in the most recent stats document
+      if (stats.length > 0) {
+        stats[0].users = await User.countDocuments(); // Total number of users
+        stats[0].enrolledUsers = enrolledUsersCount; // Number of enrolled users
+
+        // Save the updated stats document without validation
+        await stats[0].save({ validateBeforeSave: false });
+      }
+    }
+  } catch (error) {
+    console.error("Error updating stats:", error);
+  }
 });
+
