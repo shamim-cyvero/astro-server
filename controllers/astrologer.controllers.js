@@ -660,13 +660,42 @@ export const AdminActiveAstrologer = async (req, res) => {
         message: "Sorry Admin - astrologer not found",
       });
     }
-    astrologer.active = true;
+    astrologer.license = !astrologer.license;
 
     await astrologer.save({ validateBeforeSave: false });
 
     res.status(200).json({
       success: true,
       message: "Astrologer has been activated",
+      astrologer,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const AdminChangeChargePerMinAstrologer = async (req, res) => {
+  try {
+    const { astrologerId } = req.params;
+    const { chargePerMin } = req.body;
+
+    let astrologer = await Astrologer.findById(astrologerId);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Sorry Admin - astrologer not found",
+      });
+    }
+    astrologer.chargePerMin = chargePerMin;
+
+    await astrologer.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "ChargePerMin has been updated",
       astrologer,
     });
   } catch (error) {

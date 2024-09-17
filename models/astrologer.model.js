@@ -124,12 +124,22 @@ const astrologerSchema = new mongoose.Schema(
 
     chargePerMin: {
       type: Number,
+      default:0
+
     },
     expert: {
       type: String,
     },
     language: {
       type: String,
+    },
+    license : {
+      type: Boolean,
+      default:false
+    },
+    live: {
+      type: Boolean,
+      default:false
     },
 
     resetPasswordToken: String,
