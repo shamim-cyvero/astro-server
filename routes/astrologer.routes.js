@@ -1,6 +1,6 @@
 import express from "express";
 import { AdminAuthentication, AstrologerAuthentication, authentication } from "../middleware/authentication.js";
-import { AdminActiveAstrologer, AdminChangeChargePerMinAstrologer, AdminDeleteAstrologer, AdminDeleteAstrologerReview, AstrologerAddNewExpAndEdu, AstrologerDeleteEdu, AstrologerDeleteExp, AstrologerForgetPassword, AstrologerLogin, AstrologerLogout, AstrologerProfile, AstrologerResetPassword, AstrologerSignup,  AstrologerUpdateProfile, AstrologeUpdateAvatar, CreateAstrologerReview, GetAllAstrologer, GetSingleAstrologer, GetSingleInstructors, UserDeleteAstrologerReview } from "../controllers/astrologer.controllers.js";
+import { AdminActiveAstrologer, AdminChangeChargePerMinAstrologer, AdminDeleteAstrologer, AdminDeleteAstrologerReview, AstrologerAddNewExpAndEdu, AstrologerCreateZoomMeeting, AstrologerDeleteEdu, AstrologerDeleteExp, AstrologerForgetPassword, AstrologerLogin, AstrologerLogout, AstrologerProfile, AstrologerResetPassword, AstrologerSignup,  AstrologerUpdateProfile, AstrologeUpdateAvatar, CreateAstrologerReview, GetAllAstrologer, GetSingleAstrologer, GetSingleInstructors, UserDeleteAstrologerReview } from "../controllers/astrologer.controllers.js";
 
 const router = express.Router();
 
@@ -15,6 +15,8 @@ router.route("/update/avatar").put(AstrologerAuthentication,AstrologeUpdateAvata
 router.route("/new/expandedu").put(AstrologerAuthentication,AstrologerAddNewExpAndEdu);
 router.route("/delete/exp/:expId").delete(AstrologerAuthentication,AstrologerDeleteExp);
 router.route("/delete/edu/:eduId").delete(AstrologerAuthentication,AstrologerDeleteEdu);
+
+router.route("/create/meeting/:meetingId").get(AstrologerAuthentication,AstrologerCreateZoomMeeting);
 
 router.route("/forget/password").post(AstrologerForgetPassword);
 router.route("/reset/password/:token").put(AstrologerResetPassword);

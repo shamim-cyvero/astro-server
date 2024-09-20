@@ -119,6 +119,11 @@ const astrologerSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        live: {
+          type: String,
+          enum: ["Upcoming", "live", "completed"],
+          default: "Upcoming"
+        },
       },
     ],
 

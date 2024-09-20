@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import cloudinary from "cloudinary";
 import { User } from "../models/user.model.js";
 
+import axios from "axios";
 export const AstrologerSignup = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -569,7 +570,7 @@ export const GetAllAstrologer = async (req, res) => {
     });
   }
 };
- 
+
 export const GetSingleAstrologer = async (req, res) => {
   try {
     const { astrologerId } = req.params;
@@ -617,6 +618,54 @@ export const GetSingleInstructors = async (req, res) => {
     });
   }
 };
+
+export const AstrologerCreateZoomMeeting = async (req, res) => {
+  try {
+    const { meetingId } = req.params;
+
+    const appID = 2032305679;
+    const serverSecret = "e951c7bf1fb9926b87dd2a1f9345a7b2"; // Use env variable for security
+
+    let astrologer = await Astrologer.findById(req.user._id);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
+
+    // Assuming astrologer.meeting is an array of meeting objects
+    let meeting = astrologer.meeting.find((m) => m._id.toString() === meetingId);
+    if (!meeting) {
+      return res.status(400).json({
+        success: false,
+        message: "Meeting not found",
+      });
+    }
+
+    // Update the meeting's live status
+    meeting.live = 'live';
+
+    // Save the updated astrologer document
+    await astrologer.save();
+
+    res.status(200).json({
+      success: true,
+      appID,
+      serverSecret,
+      roomId: astrologer?._id,
+      astrologerName: astrologer?.name,
+    });
+
+  } catch (error) {
+    console.error("Error creating Zoom meeting", error);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to create Zoom meeting",
+    });
+  }
+};
+
 
 // ----------------admin controllers -----------------------
 
@@ -710,7 +759,6 @@ export const AdminDeleteAstrologerReview = async (req, res) => {
   try {
     const { astrologerId } = req.params;
     const { reviewId } = req.body;
-
 
     let astrologer = await Astrologer.findById(astrologerId);
     if (!astrologer) {
