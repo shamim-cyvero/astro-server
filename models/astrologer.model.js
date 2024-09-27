@@ -107,6 +107,10 @@ const astrologerSchema = new mongoose.Schema(
         price: {
           type: Number,
         },
+        commonId: {
+          type: String,
+        },
+        
         razorpay_payment_id: {
           type: String,
           required: true,
@@ -124,6 +128,10 @@ const astrologerSchema = new mongoose.Schema(
           enum: ["Upcoming", "live", "completed"],
           default: "Upcoming"
         },
+        attempt: {
+          type: Boolean,
+          default: false
+        }
       },
     ],
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { UserForgetPassword, UserResetPassword, UserLogin, UserLogout, UserProfile, UserSignup, UserUpdateProfile, UserContact, EmailContact, AdminGetAllUser, AdminDeleteUser,  AdminGetSingleUser, UserEnrolledInCourse, UserUpdateAvatar, PaymentGetkeyMeeting, MeetingPaymentProcess, MeetingPaymentVerfication, GetUserAndEnrolledUserData } from "../controllers/user.controllers.js";
+import { UserForgetPassword, UserResetPassword, UserLogin, UserLogout, UserProfile, UserSignup, UserUpdateProfile, UserContact, EmailContact, AdminGetAllUser, AdminDeleteUser,  AdminGetSingleUser, UserEnrolledInCourse, UserUpdateAvatar, PaymentGetkeyMeeting, MeetingPaymentProcess, MeetingPaymentVerfication, GetUserAndEnrolledUserData, UserEndZoomMeeting } from "../controllers/user.controllers.js";
 import { AdminAuthentication, AstrologerAuthentication, authentication } from "../middleware/authentication.js";
 
 const router = express.Router();
@@ -21,6 +21,7 @@ router.route("/get/key/meeting/payment").get(authentication,PaymentGetkeyMeeting
 router.route("/meeting/payment/process").post(authentication,MeetingPaymentProcess);
 router.route("/meeting/payment/verfication/:astrologerId").post(authentication,MeetingPaymentVerfication);
 
+router.route("/meeting/end/:roomId").get(authentication,UserEndZoomMeeting);
 
 
 //------------------user enrolled in the course----------------------

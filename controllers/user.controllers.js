@@ -546,7 +546,7 @@ export const MeetingPaymentVerfication = async (req, res) => {
       .digest("hex");
 
     const isAuthentic = expectedSignature === razorpay_signature;
-
+    const commonId = crypto.randomInt(1000000000, 9999999999).toString();
     if (isAuthentic) {
       const data = {
         user: user._id,
@@ -556,6 +556,7 @@ export const MeetingPaymentVerfication = async (req, res) => {
         date: date,
         time: time,
         price: price,
+        commonId,
 
         razorpay_payment_id,
         razorpay_order_id,
@@ -571,6 +572,7 @@ export const MeetingPaymentVerfication = async (req, res) => {
         date: date,
         time: time,
         price: price,
+        commonId,
         payment_id: razorpay_payment_id,
       };
       user.meeting.push(data2);
@@ -664,6 +666,73 @@ export const GetUserAndEnrolledUserData = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const UserEndZoomMeeting = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+
+    let user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Time-Out Please! Login",
+      });
+    }
+
+    // Assuming astrologer.meeting is an array of meeting objects user
+    let meeting = user.meeting.find((m) => m._id.toString() === roomId);
+    if (!meeting) {
+      return res.status(400).json({
+        success: false,
+        message: "Meeting not found",
+      });
+    }
+
+    let astrologer = await Astrologer.findById(meeting.astrologer);
+    if (!astrologer) {
+      return res.status(400).json({
+        success: false,
+        message: "astrologer not found",
+      });
+    }
+
+    if (!Array.isArray(astrologer.meeting)) {
+      return res.status(400).json({
+        success: false,
+        message: "User's meeting list not found or invalid",
+      });
+    }
+    let astrologerMeeting = astrologer.meeting.find((m) => m.commonId.toString() === meeting.commonId.toString());
+    if (!astrologerMeeting) {
+      return res.status(400).json({
+        success: false,
+        message: "astrologerMeeting not found",
+      });
+    }
+console.log(astrologerMeeting)
+console.log(meeting)
+    
+
+    // userMeeting.meetingId = meetingId;
+    astrologerMeeting.live = 'completed';
+    meeting.live = 'completed';
+
+    await astrologer.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "meeting end",
+  
+    });
+
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Failed to create Zoom meeting",
     });
   }
 };

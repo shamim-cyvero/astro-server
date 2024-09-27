@@ -70,6 +70,14 @@ const userSchema = new mongoose.Schema(
         price: {
           type: Number,
         },
+        commonId: {
+          type: String,
+        },
+        meetingId: {
+          type: String,
+        },
+        
+        
         razorpay_payment_id: {
           type: String,
           required: true,
@@ -79,6 +87,10 @@ const userSchema = new mongoose.Schema(
           enum: ["Upcoming", "live", "completed"],
           default: "Upcoming"
         },
+        attempt: {
+          type: Boolean,
+          default: false
+        }
       },
     ],
     course: [
